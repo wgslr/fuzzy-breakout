@@ -14,10 +14,13 @@ const TIMESTEP = 1000 / 60;
 class Player {
   constructor() {
     this.element = document.getElementById(PLAYER_ID);
-    this.x1 = 0;
-    this.y = PLAYER_HEIGHT;
-    this.velocity = 10/1000;
+    this.xl = 0;
+    this.yb = 0;
+    this.velocity = 10 / 1000;
   }
+
+  get xr() { return this.xl + PLAYER_WIDTH; }
+  get yt() { return this.yb + PLAYER_HEIGHT; }
 
   initialDraw() {
     this.element.style.width = PLAYER_WIDTH + 'px';
@@ -26,12 +29,12 @@ class Player {
 
   draw() {
     const elem = document.getElementById(PLAYER_ID)
-    elem.style.left = this.x1 + 'px';
-    elem.style.bottom = (this.y - PLAYER_HEIGHT) + 'px';
+    elem.style.left = this.xl + 'px';
+    elem.style.bottom = this.yb + 'px';
   }
 
   update(delta) {
-    this.x1 += this.velocity * delta;
+    this.xl += this.velocity * delta;
   }
 
 }
