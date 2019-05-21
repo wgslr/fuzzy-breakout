@@ -1,3 +1,5 @@
+// source: https://github.com/marcolanaro/JS-Fuzzy
+
 var FuzzyLogic = (function() {
 
     "use strict";
