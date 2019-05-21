@@ -13,7 +13,7 @@ const BALL_HEIGHT = 30;
 const BALL_WIDTH = 30;
 const BALL_ID = "ball";
 
-const TIMESTEP = 1000 / 60;
+const TIMESTEP = 1000 / 30;
 const V_BASE = 0.01;
 
 const DECISION_INTERVAL_MS = 1000;
@@ -38,7 +38,7 @@ const fuzzyRules = {
       ]
     },
     {
-      name: "position",
+      name: "distance",
       setsName: [
         "far behind",
         "near behind",
@@ -53,8 +53,25 @@ const fuzzyRules = {
         [0.5 * PLAYER_WIDTH, 2 * PLAYER_WIDTH, 0.4 * CANVAS_WIDTH, 0.6 * CANVAS_WIDTH],
         [0.4 * CANVAS_WIDTH, 0.6 * CANVAS_WIDTH, 1 * CANVAS_WIDTH, 1 * CANVAS_WIDTH]
       ]
+    },
+    {
+      name: "angle",
+      setsName: [
+        "horizontal",
+        "low",
+        "steep",
+        "vertical",
+      ],
+      sets:
+        [
+          // 1 - vertical, 0 - horizontal
+          // map() below converts to radians
+          [0, 0, 0.1, 0.2],
+          [0.1, 0.2, 0.4, 0.6],
+          [0.4, 0.6, 0.8, 0.9],
+          [0.8, 0.9, 1, 1]
+        ].map(s => s.map(x => x * Math.PI / 2))
     }
-    // TODO velocity
   ],
   variable_output: {
     name: "velocity",
@@ -71,7 +88,7 @@ const fuzzyRules = {
       [5, 20, 20, 20]
     ].map(s => s.map(x => x * V_BASE))
   },
-  inferences: [[0, 2, 2, 1], [3, 3, 0, 1, 2]]
+  inferences: [[2, 3, 3, 1], [3, 3, 0, 0, 2], [3, 2, 1, 0]]
 };
 
 
@@ -135,19 +152,24 @@ class Player extends Object {
     console.log(this.lastDecision)
     if (this.lastDecision + DECISION_INTERVAL_MS < Date.now()) {
       const rules = fuzzyRules;
+      const { ball, stats } = state;
 
-      let position = (state.ball.xm - this.xm);
-      position = Math.sign(position * this.vx) * Math.abs(position);
+      let distance = (state.ball.xm - this.xm);
+      distance = Math.sign(distance * this.vx) * Math.abs(distance);
+      const angle = Math.atan(Math.abs(ball.vy / ball.vx));
 
-      rules.crisp_input = [state.ball.yb, position];
+      rules.crisp_input = [state.ball.yb, distance, angle];
       console.log('input: ', rules.crisp_input);
+      state.stats.params.Distance = distance;
+      state.stats.params.Angle = (angle / Math.PI).toFixed(3) + 'π';
+      state.stats.params.Altitude = state.ball.yb;
 
       // add minor value to never allow 0
       const result = fuzzy.getResult(rules) + V_BASE * 0.001;
 
       console.log(result);
       this.vx = (this.vx >= 0 ? 1 : -1) * result;
-      state.stats.params.Velocity = this.vx;
+      stats.params.Velocity = this.vx;
 
       this.lastDecision = Date.now();
     }
@@ -176,7 +198,8 @@ class Ball extends Object {
 
     if (this.xr >= player.xl && this.xl <= player.xr
       && this.yb <= player.yt) {
-      this.vy = Math.abs(this.vy);
+      this.vy = Math.abs(this.vy + 0.1 * player.vx);
+
       state.incHits();
     }
   }
@@ -189,11 +212,21 @@ class Stats {
   }
 
   draw() {
-    this.element.innerHTML = "";
+    let tableStr = "<table>";
     console.log(this.params)
     for (let prop in this.params) {
-      this.element.innerHTML += `${prop}: ${this.params[prop].toFixed(4)}<br/>`
+      const value = this.params[prop];
+      let formatted;
+      if (Number.isInteger(value) || isNaN(value)) {
+        formatted = value;
+      } else {
+        formatted = value.toFixed(4);
+      }
+      tableStr += `<tr><td>${prop}</td><td>${formatted}</td></tr>`
     }
+    tableStr += "</table>";
+
+    this.element.innerHTML = tableStr;
   }
 }
 
