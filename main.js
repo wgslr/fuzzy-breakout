@@ -36,43 +36,38 @@ const fuzzyRules = {
       ]
     },
     {
-      // distance from the center of player platfrom
-      name: "shift",
+      name: "position",
       setsName: [
-        "far left",
-        "near left",
+        "far behind",
+        "near behind",
         "above",
-        "near right",
-        "far right"
+        "near ahead",
+        "far ahead"
       ],
       sets: [
         [-1 * CANVAS_WIDTH, -1 * CANVAS_WIDTH, -0.6 * CANVAS_WIDTH, -0.4 * CANVAS_WIDTH],
         [-0.6 * CANVAS_WIDTH, -0.4 * CANVAS_WIDTH, -2 * PLAYER_WIDTH, -0.5 * PLAYER_WIDTH],
-        [-0.5 * PLAYER_WIDTH, -0.5 * PLAYER_WIDTH, 0.5 * PLAYER_WIDTH, 0.5 * PLAYER_WIDTH]
+        [-0.5 * PLAYER_WIDTH, -0.5 * PLAYER_WIDTH, 0.5 * PLAYER_WIDTH, 0.5 * PLAYER_WIDTH],
         [0.5 * PLAYER_WIDTH, 2 * PLAYER_WIDTH, 0.4 * CANVAS_WIDTH, 0.6 * CANVAS_WIDTH],
         [0.4 * CANVAS_WIDTH, 0.6 * CANVAS_WIDTH, 1 * CANVAS_WIDTH, 1 * CANVAS_WIDTH]
       ]
     }
     // TODO velocity
   ],
-  variables_output: {
-    name: "Velocity",
+  variable_output: {
+    name: "velocity",
     setsName: [
-      "fast left",
-      "slow left",
-      "stop",
-      "slow right",
-      "fast right"
+      "halt",
+      "slow",
+      "fast"
     ],
     sets: [
-      [-10, -10, -10, 0],
-      [-6, -6, -6, 0],
       [0, 0, 0, 0],
-      [0, 6, 6, 6],
-      [0, 10, 10, 10],
+      [0, 5, 5, 5],
+      [0, 10, 10, 10]
     ].map(s => s.map(x => x * V_BASE))
   },
-  inferences: [[2, ]]
+  inferences: [[0, 2, 2, 1], [2, 2, 0, 1, 2]]
 };
 
 
@@ -122,6 +117,7 @@ class Player extends Object {
     this.vx = 0.05;
     this.width = PLAYER_WIDTH;
     this.height = PLAYER_HEIGHT;
+    this.lastDecision = Date.now()
   }
 
   update(delta, state) {
@@ -130,10 +126,16 @@ class Player extends Object {
   }
 
   decide(state) {
-    const rules = fuzzyRules;
-    console.log(rules)
-    rules.crisp_input = [-3, 4];
-    console.log(fuzzy.getResult(rules));
+    console.log(this.lastDecision)
+    if (this.lastDecision + 500 < Date.now()) {
+
+      const rules = fuzzyRules;
+      // console.log(rules)
+      rules.crisp_input = [100, 70];
+      console.log(fuzzy.getResult(rules));
+
+      this.lastDecision = Date.now();
+    }
 
   }
 
