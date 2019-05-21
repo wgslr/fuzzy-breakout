@@ -14,6 +14,66 @@ const BALL_WIDTH = 30;
 const BALL_ID = "ball";
 
 const TIMESTEP = 1000 / 60;
+const V_BASE = 1;
+
+const fuzzy = new FuzzyLogic();
+
+const fuzzyRules = {
+  variables_input: [
+    {
+      name: "altitude",
+      setsName: [
+        "ground",
+        "low",
+        "medium",
+        "high"
+      ],
+      sets: [
+        [0, 0, 0.2 * CANVAS_HEIGHT, 0.3 * CANVAS_HEIGHT],
+        [0.2 * CANVAS_HEIGHT, 0.3 * CANVAS_HEIGHT, 0.35 * CANVAS_HEIGHT, 0.5 * CANVAS_HEIGHT],
+        [0.45 * CANVAS_HEIGHT, 0.5 * CANVAS_HEIGHT, 0.70 * CANVAS_HEIGHT, 0.90 * CANVAS_HEIGHT],
+        [0.80 * CANVAS_HEIGHT, 0.90 * CANVAS_HEIGHT, 1 * CANVAS_HEIGHT, 1 * CANVAS_HEIGHT]
+      ]
+    },
+    {
+      // distance from the center of player platfrom
+      name: "shift",
+      setsName: [
+        "far left",
+        "near left",
+        "above",
+        "near right",
+        "far right"
+      ],
+      sets: [
+        [-1 * CANVAS_WIDTH, -1 * CANVAS_WIDTH, -0.6 * CANVAS_WIDTH, -0.4 * CANVAS_WIDTH],
+        [-0.6 * CANVAS_WIDTH, -0.4 * CANVAS_WIDTH, -2 * PLAYER_WIDTH, -0.5 * PLAYER_WIDTH],
+        [-0.5 * PLAYER_WIDTH, -0.5 * PLAYER_WIDTH, 0.5 * PLAYER_WIDTH, 0.5 * PLAYER_WIDTH]
+        [0.5 * PLAYER_WIDTH, 2 * PLAYER_WIDTH, 0.4 * CANVAS_WIDTH, 0.6 * CANVAS_WIDTH],
+        [0.4 * CANVAS_WIDTH, 0.6 * CANVAS_WIDTH, 1 * CANVAS_WIDTH, 1 * CANVAS_WIDTH]
+      ]
+    }
+    // TODO velocity
+  ],
+  variables_output: {
+    name: "Velocity",
+    setsName: [
+      "fast left",
+      "slow left",
+      "stop",
+      "slow right",
+      "fast right"
+    ],
+    sets: [
+      [-10, -10, -10, 0],
+      [-6, -6, -6, 0],
+      [0, 0, 0, 0],
+      [0, 6, 6, 6],
+      [0, 10, 10, 10],
+    ].map(s => s.map(x => x * V_BASE))
+  },
+  inferences: [[2, ]]
+};
 
 
 class Object {
@@ -63,6 +123,20 @@ class Player extends Object {
     this.width = PLAYER_WIDTH;
     this.height = PLAYER_HEIGHT;
   }
+
+  update(delta, state) {
+    super.update(delta, state);
+    this.decide(state);
+  }
+
+  decide(state) {
+    const rules = fuzzyRules;
+    console.log(rules)
+    rules.crisp_input = [-3, 4];
+    console.log(fuzzy.getResult(rules));
+
+  }
+
 }
 
 
@@ -96,7 +170,7 @@ class Stats {
     this.element = document.getElementById("stats");
     this.hits = 0;
   }
-    
+
   draw() {
     this.element.textContent = `Hits: ${this.hits}`;
   }
@@ -129,6 +203,7 @@ class State {
     this.ball.update(delta, this);
   }
 
+  // increase hits count
   incHits() {
     this.stats.hits += 1;
   }
