@@ -9,14 +9,14 @@ const PLAYER_HEIGHT = 20;
 const PLAYER_WIDTH = 50;
 const PLAYER_ID = "player";
 
+const TIMESTEP = 1000 / 60;
 
 class Player {
   constructor() {
     this.element = document.getElementById(PLAYER_ID);
     this.x1 = 0;
-    this.x2 = this.x1 + PLAYER_WIDTH;
     this.y = PLAYER_HEIGHT;
-    this.velocity = 10;
+    this.velocity = 10/1000;
   }
 
   initialDraw() {
@@ -28,6 +28,10 @@ class Player {
     const elem = document.getElementById(PLAYER_ID)
     elem.style.left = this.x1 + 'px';
     elem.style.bottom = (this.y - PLAYER_HEIGHT) + 'px';
+  }
+
+  update(delta) {
+    this.x1 += this.velocity * delta;
   }
 
 }
@@ -48,11 +52,30 @@ class State {
   draw() {
     this.player.draw();
   }
+
+  update(delta) {
+    this.player.update(delta);
+  }
 }
+
 
 
 window.onload = function () {
   const state = new State();
   state.initialDraw();
-  state.draw();
+
+  let delta = 0;
+  let lastFrameTimeMs = 0;
+  function mainLoop(timestamp) {
+    delta += timestamp - lastFrameTimeMs
+    lastFrameTimeMs = timestamp;
+    while (delta > TIMESTEP) {
+      state.update(TIMESTEP);
+      delta -= TIMESTEP;
+    }
+    state.draw();
+    requestAnimationFrame(mainLoop);
+  }
+
+  requestAnimationFrame(mainLoop);
 }
