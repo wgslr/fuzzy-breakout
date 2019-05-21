@@ -11,30 +11,41 @@ const PLAYER_ID = "player";
 
 const TIMESTEP = 1000 / 60;
 
-class Player {
+
+class Object {
   constructor() {
-    this.element = document.getElementById(PLAYER_ID);
     this.xl = 0;
     this.yb = 0;
-    this.velocity = 10 / 1000;
+    this.vx = 0;
+    this.vy = 0;
   }
 
-  get xr() { return this.xl + PLAYER_WIDTH; }
-  get yt() { return this.yb + PLAYER_HEIGHT; }
+  get xr() { return this.xl + this.width; }
+  get yt() { return this.yb + this.height; }
 
   initialDraw() {
-    this.element.style.width = PLAYER_WIDTH + 'px';
-    this.element.style.height = PLAYER_HEIGHT + 'px';
+    this.element.style.width = this.width + 'px';
+    this.element.style.height = this.height + 'px';
   }
 
   draw() {
-    const elem = document.getElementById(PLAYER_ID)
-    elem.style.left = this.xl + 'px';
-    elem.style.bottom = this.yb + 'px';
+    this.element.style.left = this.xl + 'px';
+    this.element.style.bottom = this.yb + 'px';
+  }
+}
+
+class Player extends Object {
+  constructor() {
+    super();
+    this.element = document.getElementById(PLAYER_ID);
+    this.vx = 0.01;
+    this.width = PLAYER_WIDTH;
+    this.height = PLAYER_HEIGHT;
   }
 
   update(delta) {
-    this.xl += this.velocity * delta;
+    this.xl += this.vx * delta;
+    this.yb += this.vy * delta;
   }
 
 }
