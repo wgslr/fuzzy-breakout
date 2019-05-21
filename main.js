@@ -14,7 +14,7 @@ const BALL_WIDTH = 30;
 const BALL_ID = "ball";
 
 const TIMESTEP = 1000 / 60;
-const V_BASE = 1;
+const V_BASE = 0.01;
 
 const fuzzy = new FuzzyLogic();
 
@@ -59,15 +59,17 @@ const fuzzyRules = {
     setsName: [
       "halt",
       "slow",
-      "fast"
+      "fast",
+      "very fast",
     ],
     sets: [
       [0, 0, 0, 0],
       [0, 5, 5, 5],
-      [0, 10, 10, 10]
+      [2, 10, 10, 10],
+      [5, 20, 20, 20]
     ].map(s => s.map(x => x * V_BASE))
   },
-  inferences: [[0, 2, 2, 1], [2, 2, 0, 1, 2]]
+  inferences: [[0, 2, 2, 1], [3, 3, 0, 1, 2]]
 };
 
 
@@ -81,6 +83,8 @@ class Object {
 
   get xr() { return this.xl + this.width; }
   get yt() { return this.yb + this.height; }
+  get xm() { return (this.xl + this.xr) / 2; }
+  get ym() { return (this.yb + this.yt) / 2; }
 
   initialDraw() {
     this.element.style.width = this.width + 'px';
@@ -128,11 +132,18 @@ class Player extends Object {
   decide(state) {
     console.log(this.lastDecision)
     if (this.lastDecision + 500 < Date.now()) {
-
       const rules = fuzzyRules;
-      // console.log(rules)
-      rules.crisp_input = [100, 70];
-      console.log(fuzzy.getResult(rules));
+
+      let position = (state.ball.xm - this.xm);
+      position = Math.sign(position * this.vx) * Math.abs(position);
+
+      rules.crisp_input = [state.ball.yb, position];
+      console.log('input: ', rules.crisp_input);
+
+      const result = fuzzy.getResult(rules);
+
+      console.log(result);
+      this.vx = (this.vx >= 0 ? 1 : -1) * result;
 
       this.lastDecision = Date.now();
     }
