@@ -1,11 +1,11 @@
 'use strict';
 
 
-const CANVAS_HEIGHT = 300;
-const CANVAS_WIDTH = 300;
+const CANVAS_HEIGHT = 500;
+const CANVAS_WIDTH = 500;
 const CANVAS_ID = "canvas";
 
-const PLAYER_HEIGHT = 20;
+const PLAYER_HEIGHT = 5;
 const PLAYER_WIDTH = 50;
 const PLAYER_ID = "player";
 
@@ -70,8 +70,10 @@ class Ball extends Object {
   constructor() {
     super();
     this.element = document.getElementById(BALL_ID);
-    this.vx = -0.05;
-    this.vy = -0.1;
+    this.yb = PLAYER_HEIGHT * 2;
+    this.xl = PLAYER_WIDTH * 2;
+    this.vx = 0.1;
+    this.vy = -0.15;
     this.width = BALL_WIDTH;
     this.height = BALL_HEIGHT;
   }
@@ -84,7 +86,19 @@ class Ball extends Object {
     if (this.xr >= player.xl && this.xl <= player.xr
       && this.yb <= player.yt) {
       this.vy = Math.abs(this.vy);
+      state.incHits();
     }
+  }
+}
+
+class Stats {
+  constructor() {
+    this.element = document.getElementById("stats");
+    this.hits = 0;
+  }
+    
+  draw() {
+    this.element.textContent = `Hits: ${this.hits}`;
   }
 }
 
@@ -92,6 +106,7 @@ class State {
   constructor() {
     this.player = new Player();
     this.ball = new Ball();
+    this.stats = new Stats();
   }
 
   initialDraw() {
@@ -106,11 +121,16 @@ class State {
   draw() {
     this.player.draw();
     this.ball.draw();
+    this.stats.draw();
   }
 
   update(delta) {
     this.player.update(delta, this);
     this.ball.update(delta, this);
+  }
+
+  incHits() {
+    this.stats.hits += 1;
   }
 }
 
