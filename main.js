@@ -16,6 +16,8 @@ const BALL_ID = "ball";
 const TIMESTEP = 1000 / 60;
 const V_BASE = 0.01;
 
+const DECISION_INTERVAL_MS = 1000;
+
 const fuzzy = new FuzzyLogic();
 
 const fuzzyRules = {
@@ -64,7 +66,7 @@ const fuzzyRules = {
     ],
     sets: [
       [0, 0, 0, 0],
-      [0, 5, 5, 5],
+      [0, 3, 5, 5],
       [2, 10, 10, 10],
       [5, 20, 20, 20]
     ].map(s => s.map(x => x * V_BASE))
@@ -131,7 +133,7 @@ class Player extends Object {
 
   decide(state) {
     console.log(this.lastDecision)
-    if (this.lastDecision + 500 < Date.now()) {
+    if (this.lastDecision + DECISION_INTERVAL_MS < Date.now()) {
       const rules = fuzzyRules;
 
       let position = (state.ball.xm - this.xm);
@@ -140,10 +142,12 @@ class Player extends Object {
       rules.crisp_input = [state.ball.yb, position];
       console.log('input: ', rules.crisp_input);
 
-      const result = fuzzy.getResult(rules);
+      // add minor value to never allow 0
+      const result = fuzzy.getResult(rules) + V_BASE * 0.001;
 
       console.log(result);
       this.vx = (this.vx >= 0 ? 1 : -1) * result;
+      state.stats.params.Velocity = this.vx;
 
       this.lastDecision = Date.now();
     }
@@ -159,8 +163,8 @@ class Ball extends Object {
     this.element = document.getElementById(BALL_ID);
     this.yb = PLAYER_HEIGHT * 2;
     this.xl = PLAYER_WIDTH * 2;
-    this.vx = 0.1;
-    this.vy = -0.15;
+    this.vx = 8 * V_BASE;
+    this.vy = 12 * V_BASE;
     this.width = BALL_WIDTH;
     this.height = BALL_HEIGHT;
   }
@@ -181,11 +185,15 @@ class Ball extends Object {
 class Stats {
   constructor() {
     this.element = document.getElementById("stats");
-    this.hits = 0;
+    this.params = {};
   }
 
   draw() {
-    this.element.textContent = `Hits: ${this.hits}`;
+    this.element.innerHTML = "";
+    console.log(this.params)
+    for (let prop in this.params) {
+      this.element.innerHTML += `${prop}: ${this.params[prop].toFixed(4)}<br/>`
+    }
   }
 }
 
@@ -194,6 +202,7 @@ class State {
     this.player = new Player();
     this.ball = new Ball();
     this.stats = new Stats();
+    this.stats.params.Hits = 0;
   }
 
   initialDraw() {
@@ -218,7 +227,7 @@ class State {
 
   // increase hits count
   incHits() {
-    this.stats.hits += 1;
+    this.stats.params.Hits += 1;
   }
 }
 
