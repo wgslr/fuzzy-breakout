@@ -37,7 +37,7 @@ class Object {
     this.element.style.bottom = this.yb + 'px';
   }
 
-  update(delta) {
+  update(delta, state) {
     this.xl += this.vx * delta;
     this.yb += this.vy * delta;
 
@@ -75,6 +75,17 @@ class Ball extends Object {
     this.width = BALL_WIDTH;
     this.height = BALL_HEIGHT;
   }
+
+  update(delta, state) {
+    super.update(delta, state);
+
+    const player = state.player;
+
+    if (this.xr >= player.xl && this.xl <= player.xr
+      && this.yb <= player.yt) {
+      this.vy = Math.abs(this.vy);
+    }
+  }
 }
 
 class State {
@@ -98,8 +109,8 @@ class State {
   }
 
   update(delta) {
-    this.player.update(delta);
-    this.ball.update(delta);
+    this.player.update(delta, this);
+    this.ball.update(delta, this);
   }
 }
 
