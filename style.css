@@ -4,7 +4,15 @@
   position: relative;
 }
 
-#player{
+#player, #ball{
   position: absolute;
+}
+
+#player{
   background-color: red;
+}
+
+#ball{
+  border-radius: 50%;
+  background-color: #11d;
 }
